@@ -1,6 +1,7 @@
+import os
 import pyautogui
-import time
 import subprocess
+import time
 
 # OPTIONS
 opt_initial_run = True # True or False
@@ -12,30 +13,31 @@ opt_type = 'MAD' # AD, OAD, MAD, TD, or HD
 opt_tau = 'DEC' # DEC, OCT, or ALL
 
 absdir = r'E:\Research\12_Experiments\220228_VLBI 데이터 bernese 분석\ADEV_results'
-absdir = r'E:\Research\12_Experiments\211013_5 TIC Freq 측정\DATA_post_for ADEV'
+#absdir = r'E:\Research\12_Experiments\211013_5 TIC Freq 측정\DATA_post_for ADEV'
 filename = 'LTG2-HM04_BER_COD_SMT.txt'
-filename = 'E_freq_ch1_3.txt'
+#filename = 'E_freq_ch1_3.txt'
 
-datatype = 'FREQ' # 'PHASE' or 'FREQ'
+datatype = 'P' # 'P' for phase or 'F' for frequency
+#datatype = 'F' # 'PHASE' or 'FREQ'
 
-dt = 10
+tau = 300
+
+filesize = os.path.getsize(absdir +'\\' + filename)
+print(filesize)
+
+dt = 0
 flag_start = True
 if opt_initial_run:
     progdir = r'C:\Program Files (x86)\Hamilton Technical Services\Stable32\Stable32'
-
-    if datatype == 'PHASE':
-        a = subprocess.Popen([progdir, '-P', absdir+'\\'+filename])
-    elif datatype == 'FREQ':
-        a = subprocess.Popen([progdir, '-F', absdir+'\\'+filename])
-    else:
-        print("ERROR: Unexpected datatype: datatype must be 'PHASE' or 'FREQ'.")
-    meayflag_start = False
+    command = f'{progdir} -F {absdir}\\{filename} -T {tau} -O SKIP'
+    b = subprocess.Popen([progdir, '-F', absdir+'\\'+filename, '-T', '21', '-O', 'SKIP'])
 
 if flag_start:
     if opt_initial_run:
+        #a = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         time.sleep(dt)
         
-        # Window selecting columns from data    
+        # Window selecting columns from data
         pyautogui.press('o')
         
         # Window selecting tau and multiplier
