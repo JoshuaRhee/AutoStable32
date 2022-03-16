@@ -1,49 +1,31 @@
+import clipboard
+import csv
 import os
 import pyautogui
 import subprocess
 import time
 
 # OPTIONS
-opt_initial_run = True # True or False
-opt_scale = False # NS or False
+opt_scale = 'NS' # NS or False
 opt_fill = False # True or False
 opt_remove_outlier = True # True or False
 opt_remove_drift = False # True or False
-opt_type = 'MAD' # AD, OAD, MAD, TD, or HD
-opt_tau = 'DEC' # DEC, OCT, or ALL
+opt_type = 'OAD' # AD, OAD, MAD, TD, or HD
+opt_tau = 'ALL' # DEC, OCT, or ALL
+dt = 3 # delay time [s] to wait for loading
 
-absdir = r'E:\Research\12_Experiments\220228_VLBI 데이터 bernese 분석\ADEV_results'
-#absdir = r'E:\Research\12_Experiments\211013_5 TIC Freq 측정\DATA_post_for ADEV'
-filename = 'LTG2-HM04_BER_COD_SMT.txt'
-#filename = 'E_freq_ch1_3.txt'
+f=open("input_list.csv","r")
+reader = csv.reader(f)
+for line in reader:
+    absdir = line[0]
+    filename = line[1]
+    datatype = line[2]
+    tau = line[3]
 
-datatype = 'P' # 'P' for phase or 'F' for frequency
-#datatype = 'F' # 'PHASE' or 'FREQ'
-
-tau = 300
-
-filesize = os.path.getsize(absdir +'\\' + filename)
-print(filesize)
-
-dt = 0
-flag_start = True
-if opt_initial_run:
     progdir = r'C:\Program Files (x86)\Hamilton Technical Services\Stable32\Stable32'
-    command = f'{progdir} -F {absdir}\\{filename} -T {tau} -O SKIP'
-    b = subprocess.Popen([progdir, '-F', absdir+'\\'+filename, '-T', '21', '-O', 'SKIP'])
+    command = f'{progdir} -F {absdir}/{filename} -T {tau} -O SKIP'
+    a = subprocess.Popen([progdir, '-'+datatype, absdir+'/'+filename, '-T', tau, '-O', 'SKIP'])
 
-if flag_start:
-    if opt_initial_run:
-        #a = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        time.sleep(dt)
-        
-        # Window selecting columns from data
-        pyautogui.press('o')
-        
-        # Window selecting tau and multiplier
-        pyautogui.press('o')
-        time.sleep(dt)        
-    
     # Scale
     if opt_scale:
         pyautogui.press('alt')
@@ -64,12 +46,11 @@ if flag_start:
         pyautogui.press('f') # fill
         pyautogui.press('o') # OK
         time.sleep(dt)
-        
     
     # Check
     if opt_remove_outlier:
         # Convert first
-        if datatype == 'PHASE':
+        if datatype == 'P':
             pyautogui.press('alt')
             pyautogui.press('e') # edit
             pyautogui.press('c') # convert
@@ -81,6 +62,7 @@ if flag_start:
         pyautogui.press('a') # analysis
         pyautogui.press('c') # check
         pyautogui.press('a') # calc
+        time.sleep(dt)
         pyautogui.press('l') # all
         pyautogui.press('a') # calc
         time.sleep(dt)
@@ -124,13 +106,20 @@ if flag_start:
     else:
         pyautogui.press('u') # all tau
     pyautogui.press('a') # calc
+    time.sleep(dt)
     pyautogui.press('y') # copy
-    #pyautogui.press('c') # close
     
+    copied_table = clipboard.paste()
+    if not os.path.exists('OUTPUTS'):
+        os.makedirs('OUTPUTS')
+    outputfile = open('OUTPUTS/'+filename[:-4]+'.txt', 'w')
+    outputfile.write(copied_table)
+    outputfile.close()
     
-    
-        
-    
-    
-    
-    
+    pyautogui.press('c') # close
+    pyautogui.press('alt')
+    pyautogui.press('f') # file
+    pyautogui.press('x') # exit
+    time.sleep(dt)
+    print('Process for '+filename + ' is done.')
+print('All processes are done.')
